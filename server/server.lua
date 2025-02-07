@@ -39,16 +39,29 @@ MySQL.ready(function()
 end)
 
 if Framework == "ESX" then
-    ESX.RegisterUsableItem(Config.BoomboxItem, function(source)
+    ESX.RegisterUsableItem("prop_boombox_01", function(source)
         local xPlayer = ESX.GetPlayerFromId(source)
-        TriggerClientEvent('wasabi_boombox:useBoombox', source)
-        xPlayer.removeInventoryItem(Config.BoomboxItem, 1)
+        TriggerClientEvent('wasabi_boombox:useBoombox', source, "prop_boombox_01")
+        xPlayer.removeInventoryItem("prop_boombox_01", 1)
     end)
+
+    ESX.RegisterUsableItem("prop_ghettoblast_02", function(source)
+        local xPlayer = ESX.GetPlayerFromId(source)
+        TriggerClientEvent('wasabi_boombox:useBoombox', source, "prop_ghettoblast_02")
+        xPlayer.removeInventoryItem("prop_ghettoblast_02", 1)
+    end)
+
 elseif Framework == "qb" then
-    QBCore.Functions.CreateUseableItem(Config.BoomboxItem, function(source)
+    QBCore.Functions.CreateUseableItem("prop_boombox_01", function(source)
         local Player = QBCore.Functions.GetPlayer(source)
-        TriggerClientEvent('wasabi_boombox:useBoombox', source)
-        Player.Functions.RemoveItem(Config.BoomboxItem, 1)
+        TriggerClientEvent('wasabi_boombox:useBoombox', source, "prop_boombox_01")
+        Player.Functions.RemoveItem("prop_boombox_01", 1)
+    end)
+
+    QBCore.Functions.CreateUseableItem("prop_ghettoblast_02", function(source)
+        local Player = QBCore.Functions.GetPlayer(source)
+        TriggerClientEvent('wasabi_boombox:useBoombox', source, "prop_ghettoblast_02")
+        Player.Functions.RemoveItem("prop_ghettoblast_02", 1)
     end)
 end
 
@@ -57,14 +70,18 @@ RegisterServerEvent('wasabi_boombox:deleteObj', function(netId)
 end)
 
 if Framework == "ESX" then
-    RegisterServerEvent('wasabi_boombox:objDeleted', function()
+    RegisterServerEvent('wasabi_boombox:objDeleted', function(itemName)
         local xPlayer = ESX.GetPlayerFromId(source)
-        xPlayer.addInventoryItem(Config.BoomboxItem, 1)
+        if itemName == "prop_boombox_01" or itemName == "prop_ghettoblast_02" then
+            xPlayer.addInventoryItem(itemName, 1)
+        end
     end)
 elseif Framework == "qb" then
-    RegisterServerEvent('wasabi_boombox:objDeleted', function()
+    RegisterServerEvent('wasabi_boombox:objDeleted', function(itemName)
         local Player = QBCore.Functions.GetPlayer(source)
-        Player.Functions.AddItem(Config.BoomboxItem, 1)
+        if itemName == "prop_boombox_01" or itemName == "prop_ghettoblast_02" then
+            Player.Functions.AddItem(itemName, 1)
+        end
     end)
 end
 
