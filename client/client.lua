@@ -17,15 +17,19 @@ else
 end
 
 RegisterNetEvent('wasabi_boombox:useBoombox')
-AddEventHandler('wasabi_boombox:useBoombox', function()
+AddEventHandler('wasabi_boombox:useBoombox', function(itemName)
     local ped = PlayerPedId()
-    local hash = loadModel('prop_boombox_01')
-    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(ped,0.0,3.0,0.5))
-    local radio = CreateObjectNoOffset(hash, x, y, z, true, false)
+    local hash = GetHashKey(itemName)
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(10) end
+
+    local x, y, z = table.unpack(GetEntityCoords(ped))
+    local radio = CreateObject(hash, x, y, z, true, true, true)
+    PlaceObjectOnGroundProperly(radio)
+    FreezeEntityPosition(radio, true)
     SetModelAsNoLongerNeeded(hash)
-    SetCurrentPedWeapon(ped, `WEAPON_UNARMED`)
-    AttachEntityToEntity(radio, ped, GetPedBoneIndex(ped, 57005), 0.32, 0, -0.05, 0.10, 270.0, 60.0, true, true, false, true, 1, true)
-    hasBoomBox(radio)
+
+    TriggerServerEvent("wasabi_boombox:syncBoombox", ObjToNet(radio))
 end)
 
 RegisterNetEvent('wasabi_boombox:deleteObj', function(netId)
@@ -40,23 +44,31 @@ end)
 AddEventHandler('wasabi_boombox:pickup', function()
     local ped = PlayerPedId()
     local pedCoords = GetEntityCoords(ped)
-    local radio = `prop_boombox_01`
-    local closestRadio = GetClosestObjectOfType(pedCoords, 3.0, radio, false)
-    local radioCoords = GetEntityCoords(closestRadio)
-    local musicId = 'id_'..closestRadio
-    TaskTurnPedToFaceCoord(ped, radioCoords.x, radioCoords.y, radioCoords.z, 2000)
-    TaskPlayAnim(ped, "pickup_object", "pickup_low", 8.0, 8.0, -1, 50, 0, false, false, false)
-    Wait(1000)
-    if xSound:soundExists(musicId) then
-        TriggerServerEvent("wasabi_boombox:soundStatus", "stop", musicId, {})
+    local propList = { `prop_boombox_01`, `prop_ghettoblast_02` }
+
+    for _, prop in ipairs(propList) do
+        local closestRadio = GetClosestObjectOfType(pedCoords, 3.0, prop, false)
+        if DoesEntityExist(closestRadio) then
+            local radioCoords = GetEntityCoords(closestRadio)
+            local musicId = 'id_'..closestRadio
+            TaskTurnPedToFaceCoord(ped, radioCoords.x, radioCoords.y, radioCoords.z, 2000)
+            TaskPlayAnim(ped, "pickup_object", "pickup_low", 8.0, 8.0, -1, 50, 0, false, false, false)
+            Wait(1000)
+            if xSound:soundExists(musicId) then
+                TriggerServerEvent("wasabi_boombox:soundStatus", "stop", musicId, {})
+            end
+            FreezeEntityPosition(closestRadio, false)
+            TriggerServerEvent("wasabi_boombox:deleteObj", ObjToNet(closestRadio))
+            if activeRadios[closestRadio] then
+                activeRadios[closestRadio] = nil
+            end
+            TriggerServerEvent('wasabi_boombox:syncActive', activeRadios)
+			local itemName = (prop == `prop_boombox_01`) and "prop_boombox_01" or "prop_ghettoblast_02"
+            TriggerServerEvent('wasabi_boombox:objDeleted', itemName)
+            DeleteObject(closestRadio)
+            return
+        end
     end
-    FreezeEntityPosition(closestRadio, false)
-    TriggerServerEvent("wasabi_boombox:deleteObj", ObjToNet(closestRadio))
-    if activeRadios[closestRadio] then
-        activeRadios[closestRadio] = nil
-    end 
-    TriggerServerEvent('wasabi_boombox:syncActive', activeRadios)
-    ClearPedTasks(ped)
 end)
 
 RegisterNetEvent('wasabi_boombox:soundStatus')
