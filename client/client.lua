@@ -96,11 +96,17 @@ AddEventHandler('wasabi_boombox:soundStatus', function(type, musicId, data)
     end)
 end)
 
-AddEventHandler('wasabi_boombox:interact', function()
+AddEventHandler('wasabi_boombox:interact', function(itemName)
     local pedCoords = GetEntityCoords(PlayerPedId())
-    local radio = GetClosestObjectOfType(pedCoords, 5.0, `prop_boombox_01`, false)
-    local radioCoords = GetEntityCoords(radio)
-    interactBoombox(radio, radioCoords)
+    local propType = (itemName == "prop_boombox_01") and `prop_boombox_01` or `prop_ghettoblast_02`
+    local radio = GetClosestObjectOfType(pedCoords, 5.0, propType, false)
+
+    if DoesEntityExist(radio) then
+        local radioCoords = GetEntityCoords(radio)
+        interactBoombox(radio, radioCoords)
+    else
+        print("^1[ERROR] No se encontró una boombox cercana del tipo: " .. itemName)
+    end
 end)
 
 AddEventHandler('wasabi_boombox:savedSongs', function(radio)
