@@ -6,7 +6,7 @@ fx_version "cerulean"
 game "gta5"
 
 description 'Wasabi ESX/QB Boombox'
-version '2.1.5'
+version '2.1.5' --NEW 3.000001? we can renew it?
 
 lua54 'yes'
 
