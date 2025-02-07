@@ -36,9 +36,12 @@ CREATE TABLE IF NOT EXISTS `boombox_songs` (
 ```
 
 ```
+#ensure rpemotes-reborn or HERE?
 ensure ox_lib
 ensure qtarget or ensure qb-target
+#ensure rpemotes-reborn or HERE?
 ensure xsound
+ensure rpemotes-reborn
 ensure wasabi_boombox
 ```
 
@@ -51,3 +54,173 @@ https://www.youtube.com/watch?v=P4VfaLsN_U8
 
 # Support
 <a href='https://discord.gg/79zjvy4JMs'>![Discord Banner 2](https://discordapp.com/api/guilds/1025493337031049358/widget.png?style=banner2)</a>
+
+
+ADD SNIPPET WITH ALL CREDS TO OX AND RPEMOTES-REBORN SCRIPTS TO MAKE IT POSSIBLE UPDATE. MAYBE WASABI HAS ANOTHER PLAN TO THIS?
+ALL CREDS TO WASABI, FIRST SCRIPTS EVER HAD!
+
+
+OX DATA ITEMS:
+
+```
+	["prop_boombox_01"] = {
+		label = "BoomBox",
+		weight = 2000,
+		stack = false,
+		close = true,
+		buttons = {{ 
+			label = 'Drop Boombox', 
+			action = function(slot) 
+				TriggerEvent("wasabi_boombox:useBoombox", "prop_boombox_01") 
+			end 
+		}},
+		client = {
+			use = function(slot) 
+				handleBoomboxUse('prop_boombox_01', "boombox", "boombox2") 
+			end,
+			usetime = 2500,
+			disable = {move = true, car = true, combat = true, mouse = true, sprint = true} --this will be only the time to active on usetime.
+		} 
+	},
+	["prop_ghettoblast_02"] = {
+		label = "GhettoBlaster",
+		weight = 2000,
+		stack = false,
+		close = true,
+		buttons = {{ 
+			label = 'Drop GhettoBlaster', 
+			action = function(slot) 
+				TriggerEvent("wasabi_boombox:useBoombox", "prop_ghettoblast_02") 
+			end 
+		}},
+		client = {
+			use = function(slot) 
+				handleBoomboxUse('prop_ghettoblast_02', "ghettoblast", "ghettoblast2") 
+			end,
+			usetime = 2500,
+			disable = {move = true, car = true, combat = true, mouse = true, sprint = true} --this will be only the time to active on usetime.
+		} 
+	},
+
+```
+OX INV MODULES/ITEMS/CLIENT:
+```
+local function handleBoomboxUse(itemName, emote1, emote2)
+    local options = {
+        { value = emote1, label = "SoundSystem en Mano" },
+        { value = emote2, label = "SoundSystem en Hombro" }
+    }
+    local choice = lib.inputDialog("Opciones de SoundSystem", {
+        { type = 'select', label = "Emote SoundSystem", options = options } 
+    })
+
+    if not choice or not choice[1] then return end
+
+    local selectedEmote = choice[1]
+    exports["rpemotes-reborn"]:EmoteCommandStart(selectedEmote, 0)
+
+    local playerPed = PlayerPedId()
+    local radio = itemName .. "_" .. GetPlayerServerId(PlayerId())
+
+    if not activeRadios[radio] then
+        activeRadios[radio] = { pos = GetEntityCoords(playerPed), data = { playing = false } }
+    end
+    activeRadios[radio].pos = GetEntityCoords(playerPed)
+    TriggerServerEvent('wasabi_boombox:syncActive', activeRadios)
+
+    if not activeRadios[radio].data.playing then
+        TriggerEvent("wasabi_boombox:playMenu", { type = 'play', id = radio })
+    end
+
+    CreateThread(function()
+        while exports["rpemotes-reborn"]:IsEmotePlaying() do
+            Wait(1000)
+            activeRadios[radio].pos = GetEntityCoords(playerPed)
+            TriggerServerEvent('wasabi_boombox:syncActive', activeRadios)
+        end
+        TriggerEvent('wasabi_boombox:stopMusic', radio)
+    end)
+end
+```
+
+
+RPEMOTES-REBORN ANIMATIONLIST:
+```
+    ["boombox"] = {
+        "move_weapon@jerrycan@generic",
+        "idle",
+        "Boombox",
+        AnimationOptions = {
+            Prop = "prop_boombox_01",
+            PropBone = 57005,
+            PropPlacement = {
+                0.27,
+                0.0,
+                0.0,
+                0.0,
+                263.0,
+                58.0
+            },
+            EmoteLoop = true,
+            EmoteMoving = true
+        }
+    },
+    ["boombox2"] = {
+        "molly@boombox1",
+        "boombox1_clip",
+        "Boombox 2",
+        AnimationOptions = {
+            Prop = 'prop_ghettoblast_02',
+            PropBone = 10706,
+            PropPlacement = {
+                -0.2310,
+                -0.0770,
+                0.2410,
+                -179.7256,
+                176.7406,
+                23.0190
+            },
+            EmoteLoop = true,
+            EmoteMoving = true
+        }
+    },
+    ["ghettoblast"] = {
+        "move_weapon@jerrycan@generic",
+        "idle",
+        "Ghettoblast",
+        AnimationOptions = {
+            Prop = "prop_ghettoblast_02",
+            PropBone = 57005,
+            PropPlacement = {
+                0.27,
+                0.0,
+                0.0,
+                0.0,
+                263.0,
+                58.0
+            },
+            EmoteLoop = true,
+            EmoteMoving = true
+        }
+    },
+    ["ghettoblast2"] = {
+        "molly@boombox1",
+        "boombox1_clip",
+        "Ghettoblast 2",
+        AnimationOptions = {
+            Prop = 'prop_ghettoblast_02',
+            PropBone = 10706,
+            PropPlacement = {
+                -0.2310,
+                -0.0770,
+                0.2410,
+                -179.7256,
+                176.7406,
+                23.0190
+            },
+            EmoteLoop = true,
+            EmoteMoving = true
+        }
+    },
+```
+
